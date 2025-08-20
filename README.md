@@ -17,6 +17,7 @@
 
 *   [Python](https://www.python.org/) v3.12+
 *   [FFmpeg](https://ffmpeg.org/)
+*   [inswapper model](https://disk.yandex.ru/d/WpexPBQsSOt4lg)
 
 **Шаги установки:**
 
@@ -28,7 +29,10 @@
     ```sh
     cd faceswap
     ```
-3.  Установите зависимости:
+
+3.  Перенесите inswapper_128.onnx в директорию проекта
+
+4.  Установите зависимости:
     ```sh
     #Создайте и активируйте виртуальное окружение
     
@@ -39,7 +43,8 @@
     pip install -r requirements.txt
     
     ```
-4.  Запустите проект:
+5.  Запустите проект:
     ```sh
-    multi_face_swap.py
+    python3 multi_face_swap.py
     ```
+
