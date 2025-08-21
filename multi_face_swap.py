@@ -32,7 +32,6 @@ class FaceSwapApp:
         self.face_clusters = []
         self.selection_event = threading.Event()
 
-        # --- НОВЫЕ СТРУКТУРЫ ДАННЫХ ---
         # {cluster_idx: 'path/to/target.jpg'}
         self.target_assignments = {} 
         # {face.my_id: cluster_idx}
@@ -48,7 +47,6 @@ class FaceSwapApp:
         self.check_queue()
 
     def create_widgets(self):
-        # ... (Код виджетов почти без изменений, только текст) ...
         style = ttk.Style()
         style.configure("TButton", padding=6, relief="flat")
         style.configure("TLabel", padding=6)
@@ -101,7 +99,6 @@ class FaceSwapApp:
         self.log_text.delete('1.0', END)
         threading.Thread(target=self.run_full_process, daemon=True).start()
 
-    # --- ЗНАЧИТЕЛЬНО ИЗМЕНЕННАЯ ФУНКЦИЯ ---
     def show_face_selection_dialog(self):
         dialog = Toplevel(self.root)
         dialog.title("Назначьте целевые лица для каждой группы")
@@ -109,7 +106,6 @@ class FaceSwapApp:
         dialog.transient(self.root)
         dialog.grab_set()
 
-        # ... (Верхняя часть с ползунком без изменений) ...
         control_frame = ttk.Frame(dialog, padding=10)
         control_frame.pack(fill='x')
         ttk.Label(control_frame, text="Порог группировки:").grid(row=0, column=0, sticky='w')
@@ -122,7 +118,7 @@ class FaceSwapApp:
         info_label = ttk.Label(dialog, text="Группировка...", anchor='center')
         info_label.pack(fill='x', padx=10)
 
-        # ... (Часть с canvas без изменений) ...
+
         outer_canvas_frame = ttk.Frame(dialog)
         outer_canvas_frame.pack(pady=5, padx=10, fill='both', expand=True)
         canvas = Canvas(outer_canvas_frame)
@@ -231,7 +227,7 @@ class FaceSwapApp:
             dialog.destroy()
             self.selection_event.set()
 
-        # ... (Кнопки и биндинги без изменений) ...
+        
         btn_frame = ttk.Frame(dialog)
         btn_frame.pack(pady=10, fill='x', side=BOTTOM)
         ok_btn = ttk.Button(btn_frame, text="Продолжить", command=on_confirm)
@@ -243,12 +239,12 @@ class FaceSwapApp:
         update_display(threshold_var.get())
         self.root.wait_window(dialog)
         
-    # --- ЗНАЧИТЕЛЬНО ИЗМЕНЕННАЯ ФУНКЦИЯ ---
+
     def run_full_process(self):
         temp_video_path = None
         try:
             self.reset_ui() # Очищаем старые данные
-            # ... (Конвертация видео без изменений) ...
+
             video_for_processing = self.convert_to_mp4(self.input_video_path)
             if video_for_processing != self.input_video_path:
                 temp_video_path = video_for_processing
@@ -272,7 +268,7 @@ class FaceSwapApp:
                 self.queue.put({'type': 'log', 'message': 'Обработка отменена: не было сделано ни одного назначения для замены.'})
                 return
 
-            # --- НОВЫЙ ШАГ: Предварительная обработка всех целевых лиц ---
+            # Предварительная обработка всех целевых лиц ---
             self.queue.put({'type': 'status', 'message': 'Анализ целевых изображений...'})
             self.processed_target_faces.clear()
             for cluster_idx, path in self.target_assignments.items():
@@ -289,10 +285,10 @@ class FaceSwapApp:
             self.queue.put({'type': 'status', 'message': 'Выполняется замена лиц...'})
             self.progress['value'] = 0
 
-            # --- ПРОХОД 2: ЗАМЕНА С НОВОЙ ЛОГИКОЙ ---
+            # Замена лий
             output_path_no_audio = os.path.join(self.output_dir, f'temp_output_no_audio_{random.randint(1000,9999)}.mp4')
             with av.open(video_for_processing) as input_container, av.open(output_path_no_audio, mode='w') as output_container:
-                # ... (Настройка потоков без изменений) ...
+
                 input_stream = input_container.streams.video[0]
                 output_stream = output_container.add_stream('libx264', rate=input_stream.average_rate)
                 output_stream.width = input_stream.width
@@ -315,7 +311,7 @@ class FaceSwapApp:
                             # Выполняем замену
                             img = self.swapper.get(img, source_face, target_face_for_swap)
                     
-                    # ... (Кодирование кадра и прогресс без изменений) ...
+                    # Кодирование кадра
                     output_frame = av.VideoFrame.from_ndarray(img, format='bgr24')
                     for packet in output_stream.encode(output_frame):
                         output_container.mux(packet)
@@ -325,7 +321,7 @@ class FaceSwapApp:
                 for packet in output_stream.encode():
                     output_container.mux(packet)
 
-            # ... (Слияние с аудио и очистка без изменений) ...
+            # Слияние с аудио и очистка
             self.queue.put({'type': 'status', 'message': 'Добавление аудиодорожки...'})
             base_name = os.path.splitext(os.path.basename(self.input_video_path))[0]
             final_output = os.path.join(self.output_dir, f'final_output_{base_name}.mp4')
@@ -350,7 +346,7 @@ class FaceSwapApp:
                 try: os.remove(temp_video_path)
                 except OSError as e_remove: self.queue.put({'type': 'log', 'message': f'Не удалось удалить временный файл {temp_video_path}: {e_remove}'})
 
-    # Оставим остальные функции без изменений
+
     def log_message(self, message):
         self.log_text.configure(state=NORMAL)
         self.log_text.insert(END, message + "\n")
